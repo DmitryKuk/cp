@@ -108,7 +108,7 @@ static int copy_dir_dir(const char *src_dirname, const char *dest_dirname, mode_
 	
 	// ... src path
 	size_t src_path_pos = src_dirname_only_pos + src_dirname_only_len;
-	size_t src_path_cap = src_path_pos + ((src_dirname[src_path_pos - 1] == '/')? 0: 1);
+	size_t src_path_cap = src_path_pos + ((src_dirname[src_path_pos - 1] == '/')? 0: 1) + 2;
 	
 	char *src_path = malloc(src_path_cap + 1);
 	if (src_path == NULL) {
@@ -172,16 +172,16 @@ static int copy_dir_dir(const char *src_dirname, const char *dest_dirname, mode_
 	ino_t parent_ino, self_ino;
 	{
 		struct stat st1, st2;
-		strcpy(new_path + new_path_len, ".");
-		stat(new_path, &st1);
-		strcpy(new_path + new_path_len + 1, ".");
-		stat(new_path, &st2);
+		strcpy(src_path + src_path_pos, ".");
+		stat(src_path, &st1);
+		strcpy(src_path + src_path_pos + 1, ".");
+		stat(src_path, &st2);
 		self_ino = st1.st_ino;
 		parent_ino = st2.st_ino;
 	}
 	
 	struct dirent *dp;
-	while ((dp = readdir(dir)) != NULL) {
+	while ((dp = readdir(src_dir)) != NULL) {
 		// Skipping links to parent or current dir
 		if (dp->d_ino == parent_ino || dp->d_ino == self_ino)
 			continue;
