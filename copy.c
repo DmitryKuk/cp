@@ -168,14 +168,23 @@ static int copy_dir_dir(const char *src_dirname, const char *dest_dirname, mode_
 		print_error(2, CANT_SET_PERMISSIONS_, dest_path);
 	
 	
-	// Copying content
-	struct dirent *dp = NULL;
-	while ((dp = readdir(src_dir)) != NULL) {
-		// Skipping ./ and ../
-		if (dp->d_name[0] == '.')
-			switch (dp->d_name[1]) {
-			case '\0': case '.': case '/': continue;
-			}
+	// Getting links to parent and current dir
+	ino_t parent_ino, self_ino;
+	{
+		struct stat st1, st2;
+		strcpy(new_path + new_path_len, ".");
+		stat(new_path, &st1);
+		strcpy(new_path + new_path_len + 1, ".");
+		stat(new_path, &st2);
+		self_ino = st1.st_ino;
+		parent_ino = st2.st_ino;
+	}
+	
+	struct dirent *dp;
+	while ((dp = readdir(dir)) != NULL) {
+		// Skipping links to parent or current dir
+		if (dp->d_ino == parent_ino || dp->d_ino == self_ino)
+			continue;
 		
 		// Correcting pathes
 		size_t name_len = strlen(dp->d_name);	// Mac OS: d_namlen
