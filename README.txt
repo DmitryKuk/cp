@@ -7,6 +7,9 @@ To build it run:
 To use run:
 	./cp [-R] SRC1 [SRC2 ...] DEST
 
+Options:
+	-R  Recursively process directories
+
 To clear run:
 	make clear
 
